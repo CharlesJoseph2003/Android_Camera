@@ -35,9 +35,9 @@
         <activity
             android:name=".GalleryActivity"
             android:exported="false" />
-<!--        <activity-->
-<!--            android:name=".PhotoDetailActivity"-->
-<!--            android:exported="false" />-->
+        <activity
+            android:name=".PhotoDetailActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

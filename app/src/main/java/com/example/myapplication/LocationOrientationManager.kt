@@ -72,7 +72,7 @@ class LocationOrientationManager(private val context: Context) {
 
     private suspend fun getAddressFromLocation(location: Location): String? {
         return try {
-            withTimeoutOrNull(3000L) {
+            withTimeoutOrNull(5000L) {
                 val addresses: List<Address>? =
                     geocoder.getFromLocation(location.latitude, location.longitude, 1)
                 addresses?.firstOrNull()?.let { address ->
