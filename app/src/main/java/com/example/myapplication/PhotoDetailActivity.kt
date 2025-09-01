@@ -146,10 +146,7 @@ class PhotoDetailActivity : ComponentActivity() {
                     }
                 }
 
-                // Rest of your existing code (photo display and metadata)...
 
-                // Full-size photo
-// Full-size photo
                 photo?.let { photoRef ->
                     Image(
                         painter = rememberAsyncImagePainter(File(photoRef.optimizedPath)),
@@ -163,7 +160,6 @@ class PhotoDetailActivity : ComponentActivity() {
                     )
                 }
 
-                // Your existing metadata card code...
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -181,7 +177,6 @@ class PhotoDetailActivity : ComponentActivity() {
 
                         HorizontalDivider()
 
-                        // Your existing metadata rows...
                         photo?.let {
                             MetadataRow(
                                 label = "Date/Time:",
