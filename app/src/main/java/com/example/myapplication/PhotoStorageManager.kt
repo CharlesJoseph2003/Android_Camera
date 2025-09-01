@@ -34,9 +34,7 @@ class PhotoStorageManager(private val context: Context) {
     }
 
     init {
-        // Clean up orphans on app startup
-        // Consider running on a background thread if startup performance is critical
-        // e.g., using a CoroutineScope tied to the application lifecycle
+
         CoroutineScope(Dispatchers.IO).launch {
             cleanupOrphanedThumbnails()
         }
@@ -260,18 +258,6 @@ class PhotoStorageManager(private val context: Context) {
     }
 
     private fun cleanupOrphanedThumbnails() {
-        // This operation involves I/O and could be slow if there are many files.
-        // Consider running it on a background thread if PhotoStorageManager
-        // is initialized on the main thread and startup performance is critical.
-        // For example, using a CoroutineScope:
-        // CoroutineScope(Dispatchers.IO).launch {
-        //     val orphans = findOrphanedThumbnails()
-        //     orphans.forEach { it.delete() }
-        //     if (orphans.isNotEmpty()) {
-        //         Log.d("PhotoStorageManager", "Cleaned ${orphans.size} orphaned thumbnails")
-        //     }
-        // }
-        // For simplicity in this context, direct execution:
         val orphans = findOrphanedThumbnails()
         orphans.forEach { it.delete() }
 

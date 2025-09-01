@@ -17,6 +17,8 @@ import com.example.myapplication.databinding.ActivityMainBinding
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import android.view.Surface
+import android.view.WindowManager
 import android.content.Intent
 import java.io.File
 
@@ -91,8 +93,9 @@ class MainActivity : ComponentActivity() {
                     it.setSurfaceProvider(viewBinding.viewFinder.surfaceProvider)
                 }
 
-            imageCapture = ImageCapture.Builder().build() // Initialize imageCapture
-
+            imageCapture = ImageCapture.Builder()
+                .setTargetRotation(Surface.ROTATION_0) // Force portrait orientation
+                .build()
             // Select back camera as a default
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
@@ -114,6 +117,9 @@ class MainActivity : ComponentActivity() {
     private fun takePhoto() {
         val imageCapture = imageCapture ?: return
         val tempFile = File.createTempFile("temp_photo", ".jpg", cacheDir)
+
+        // Set rotation at capture time for current device orientation
+        imageCapture.targetRotation = windowManager.defaultDisplay.rotation
 
         imageCapture.takePicture(
             ImageCapture.OutputFileOptions.Builder(tempFile).build(),

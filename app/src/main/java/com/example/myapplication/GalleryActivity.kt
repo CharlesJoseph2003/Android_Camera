@@ -21,7 +21,7 @@ import androidx.lifecycle.lifecycleScope
 import coil.compose.rememberAsyncImagePainter
 import androidx.compose.runtime.mutableIntStateOf
 import kotlinx.coroutines.launch
-import android.widget.Toast
+import androidx.compose.ui.draw.rotate
 
 import java.io.File
 
@@ -44,19 +44,42 @@ class GalleryActivity : ComponentActivity() {
         // Force immediate refresh by recreating content
         refreshTrigger.intValue++
     }
-
     @Composable
     fun GalleryScreen() {
         var photos by remember { mutableStateOf<List<PhotoReference>>(emptyList()) }
         var isLoading by remember { mutableStateOf(true) }
+        var isLoadingMore by remember { mutableStateOf(false) }
+        var currentPage by remember { mutableIntStateOf(0) }
+        var hasMorePages by remember { mutableStateOf(true) }
+        val pageSize = 20
 
-        // This will re-trigger when refreshTrigger changes
+        // Load initial photos and refresh when refreshTrigger changes
         LaunchedEffect(refreshTrigger.intValue) {
             Log.d("GalleryActivity", "Loading photos, trigger: ${refreshTrigger.intValue}")
+            currentPage = 0
+            photos = emptyList()
+            hasMorePages = true
+
             lifecycleScope.launch {
-                photos = photoStorageManager.getAllPhotos()
+                val initialPhotos = photoStorageManager.getAllPhotos(limit = pageSize, offset = 0)
+                photos = initialPhotos
+                hasMorePages = initialPhotos.size == pageSize
                 isLoading = false
                 Log.d("GalleryActivity", "Loaded ${photos.size} photos")
+            }
+        }
+
+        // Load more photos when page changes
+        LaunchedEffect(currentPage) {
+            if (currentPage > 0 && hasMorePages) {
+                isLoadingMore = true
+                lifecycleScope.launch {
+                    val newPhotos = photoStorageManager.getAllPhotos(limit = pageSize, offset = currentPage * pageSize)
+                    photos = photos + newPhotos
+                    hasMorePages = newPhotos.size == pageSize
+                    isLoadingMore = false
+                    Log.d("GalleryActivity", "Loaded page $currentPage, total photos: ${photos.size}")
+                }
             }
         }
 
@@ -70,7 +93,7 @@ class GalleryActivity : ComponentActivity() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Photo Gallery (${photos.size})",
+                    text = "Photo Gallery (${photos.size}${if (hasMorePages) "+" else ""})",
                     style = MaterialTheme.typography.headlineMedium
                 )
 
@@ -105,14 +128,33 @@ class GalleryActivity : ComponentActivity() {
                         PhotoThumbnail(
                             photo = photo,
                             onClick = {
-                                // Navigate to photo detail
                                 val intent = Intent(this@GalleryActivity, PhotoDetailActivity::class.java)
                                 intent.putExtra("photoId", photo.id)
                                 startActivity(intent)
-//                                Toast.makeText(this@GalleryActivity, "Photo detail coming soon", Toast.LENGTH_SHORT).show()
-
                             }
                         )
+                    }
+
+                    // Load more indicator
+                    if (hasMorePages) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (isLoadingMore) {
+                                    CircularProgressIndicator()
+                                } else {
+                                    Button(
+                                        onClick = { currentPage++ }
+                                    ) {
+                                        Text("Load More")
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -130,7 +172,9 @@ class GalleryActivity : ComponentActivity() {
             Image(
                 painter = rememberAsyncImagePainter(File(photo.thumbnailPath)),
                 contentDescription = "Photo",
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .rotate(90f), // Add this
                 contentScale = ContentScale.Crop
             )
         }
