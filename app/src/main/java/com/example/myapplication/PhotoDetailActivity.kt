@@ -20,6 +20,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.TextButton
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.ui.draw.rotate
 import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.launch
 import java.io.File
@@ -148,6 +149,7 @@ class PhotoDetailActivity : ComponentActivity() {
                 // Rest of your existing code (photo display and metadata)...
 
                 // Full-size photo
+// Full-size photo
                 photo?.let { photoRef ->
                     Image(
                         painter = rememberAsyncImagePainter(File(photoRef.optimizedPath)),
@@ -155,7 +157,8 @@ class PhotoDetailActivity : ComponentActivity() {
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(1f)
-                            .padding(horizontal = 16.dp),
+                            .padding(horizontal = 16.dp)
+                            .rotate(90f), // Add this line
                         contentScale = ContentScale.Crop
                     )
                 }
