@@ -56,6 +56,9 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
     implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
+
 
     //Room
 //    val room_version = "2.6.1"

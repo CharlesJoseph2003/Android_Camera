@@ -17,6 +17,7 @@ import com.example.myapplication.databinding.ActivityMainBinding
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import android.content.Intent
 import java.io.File
 
 class MainActivity : ComponentActivity() {
@@ -63,6 +64,11 @@ class MainActivity : ComponentActivity() {
         requestPermissions()
         viewBinding.imageCaptureButton.setOnClickListener {
             takePhoto()
+        }
+
+        viewBinding.galleryButton.setOnClickListener {
+            val intent = Intent(this, GalleryActivity::class.java)
+            startActivity(intent)
         }
     }
 
