@@ -2,6 +2,7 @@ package com.example.myapplication
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -18,6 +19,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import coil.compose.rememberAsyncImagePainter
+import androidx.compose.runtime.mutableIntStateOf
 import kotlinx.coroutines.launch
 import android.widget.Toast
 
@@ -25,6 +27,7 @@ import java.io.File
 
 class GalleryActivity : ComponentActivity() {
     private lateinit var photoStorageManager: PhotoStorageManager
+    private var refreshTrigger = mutableIntStateOf(0) // Add this
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,15 +38,25 @@ class GalleryActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        Log.d("GalleryActivity", "onResume called - forcing refresh")
+        // Force immediate refresh by recreating content
+        refreshTrigger.intValue++
+    }
+
     @Composable
     fun GalleryScreen() {
         var photos by remember { mutableStateOf<List<PhotoReference>>(emptyList()) }
         var isLoading by remember { mutableStateOf(true) }
 
-        LaunchedEffect(Unit) {
+        // This will re-trigger when refreshTrigger changes
+        LaunchedEffect(refreshTrigger.intValue) {
+            Log.d("GalleryActivity", "Loading photos, trigger: ${refreshTrigger.intValue}")
             lifecycleScope.launch {
                 photos = photoStorageManager.getAllPhotos()
                 isLoading = false
+                Log.d("GalleryActivity", "Loaded ${photos.size} photos")
             }
         }
 

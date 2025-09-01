@@ -14,6 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.TextButton
+import android.util.Log
+import android.widget.Toast
 import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.launch
 import java.io.File
@@ -38,6 +44,7 @@ class PhotoDetailActivity : ComponentActivity() {
         var photo by remember { mutableStateOf<PhotoReference?>(null) }
         var metadata by remember { mutableStateOf<PhotoMetadataEntity?>(null) }
         var isLoading by remember { mutableStateOf(true) }
+        var showDeleteDialog by remember { mutableStateOf(false) }
 
         LaunchedEffect(photoId) {
             lifecycleScope.launch {
@@ -56,6 +63,47 @@ class PhotoDetailActivity : ComponentActivity() {
             }
         }
 
+        // Delete confirmation dialog
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("Delete Photo") },
+                text = { Text("Are you sure you want to delete this photo? This action cannot be undone.") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            lifecycleScope.launch {
+                                try {
+                                    Log.d("PhotoDetail", "Attempting to delete photo: $photoId")
+                                    val success = photoStorageManager.deletePhoto(photoId)
+                                    Log.d("PhotoDetail", "Delete result: $success")
+
+                                    if (success) {
+                                        Log.d("PhotoDetail", "Photo deleted successfully, finishing activity")
+                                        finish() // Go back to gallery
+                                    } else {
+                                        Log.e("PhotoDetail", "Failed to delete photo")
+                                        Toast.makeText(this@PhotoDetailActivity, "Failed to delete photo", Toast.LENGTH_SHORT).show()
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e("PhotoDetail", "Exception during delete: ${e.message}", e)
+                                    Toast.makeText(this@PhotoDetailActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                            showDeleteDialog = false
+                        }
+                    ) {
+                        Text("Delete", color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
         if (isLoading) {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -69,7 +117,7 @@ class PhotoDetailActivity : ComponentActivity() {
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                // Header with back button
+                // Header with back and delete buttons
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -81,10 +129,23 @@ class PhotoDetailActivity : ComponentActivity() {
                         text = "Photo Detail",
                         style = MaterialTheme.typography.headlineMedium
                     )
-                    Button(onClick = { finish() }) {
-                        Text("Back")
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        // Delete button
+                        Button(
+                            onClick = { showDeleteDialog = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text("Delete")
+                        }
+
+                        Button(onClick = { finish() }) {
+                            Text("Back")
+                        }
                     }
                 }
+
+                // Rest of your existing code (photo display and metadata)...
 
                 // Full-size photo
                 photo?.let { photoRef ->
@@ -99,7 +160,7 @@ class PhotoDetailActivity : ComponentActivity() {
                     )
                 }
 
-                // Metadata card
+                // Your existing metadata card code...
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -115,9 +176,9 @@ class PhotoDetailActivity : ComponentActivity() {
                             style = MaterialTheme.typography.headlineSmall
                         )
 
-                        Divider()
+                        HorizontalDivider()
 
-                        // Timestamp
+                        // Your existing metadata rows...
                         photo?.let {
                             MetadataRow(
                                 label = "Date/Time:",
@@ -126,7 +187,6 @@ class PhotoDetailActivity : ComponentActivity() {
                             )
                         }
 
-                        // Location info
                         metadata?.let { meta ->
                             if (meta.latitude != null && meta.longitude != null) {
                                 MetadataRow(
@@ -153,7 +213,6 @@ class PhotoDetailActivity : ComponentActivity() {
                             )
                         }
 
-                        // Photo ID
                         MetadataRow(
                             label = "Photo ID:",
                             value = photoId

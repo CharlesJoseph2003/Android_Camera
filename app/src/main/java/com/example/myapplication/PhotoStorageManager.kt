@@ -178,7 +178,10 @@ class PhotoStorageManager(private val context: Context) {
                         photoDao.deletePhoto(entity.id)
                         photoDao.deletePhotoMetadata(entity.id)
                     } catch (e: Exception) {
-                        Log.w("PhotoStorageManager", "Failed to clean orphaned record: ${entity.id}")
+                        Log.w(
+                            "PhotoStorageManager",
+                            "Failed to clean orphaned record: ${entity.id}"
+                        )
                     }
                     null
                 }
@@ -311,7 +314,7 @@ class PhotoStorageManager(private val context: Context) {
             deletedThumbnail = true
         }
 
-        // ADD: Clean up database records
+        // Clean up database records
         if (deletedOptimized || deletedThumbnail) {
             try {
                 // Delete photo and metadata records
@@ -325,7 +328,9 @@ class PhotoStorageManager(private val context: Context) {
                 )
             }
 
+            // Force complete cache invalidation
             cachedPhotos = null
+            photoCacheTimestamp = 0L // Add this line to reset timestamp
         }
 
         return@withContext deletedOptimized && deletedThumbnail
